@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestSuite xmlns='https://www.aist.go.jp/rospit' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Picks and places">
+  <TestCase name="Picks" wait_for_preconditions="true">
+    <SetUp>
+      <Step xsi:type="ServiceCall" service="/pick_and_placer/initialize" type="rsj_2017_pick_and_placer/Initialize">
+        <Message />
+      </Step>
+    </SetUp>
+    <Preconditions>
+      <Precondition>
+        <Condition xsi:type="Binary" value="true" />
+        <Evaluator xsi:type="MessageReceivedEvaluator" topic="/ar_block_finder/pose" type="geometry_msgs/PoseStamped" />
+      </Precondition>
+    </Preconditions>
+    <Run>
+      <Step xsi:type="ServiceCall" service="/pick_and_placer/do_pick" type="rsj_2017_pick_and_placer/DoPick" save_result="true">
+        <Message>
+          <Parameter name="pose/x">
+            <Value xsi:type="MessageValue" topic="/ar_block_finder/pose" field="pose/position/x" type="geometry_msgs/PoseStamped" />
+          </Parameter>
+          <Parameter name="pose/y">
+            <Value xsi:type="MessageValue" topic="/ar_block_finder/pose" field="pose/position/y" type="geometry_msgs/PoseStamped" />
+          </Parameter>
+        </Message>
+      </Step>
+      <Step xsi:type="Sleep" duration="4" />
+    </Run>
+    <Postconditions>
+      <Postcondition name="Block picked position">
+        <Condition xsi:type="GreaterThan" value="0.1" />
+        <Evaluator xsi:type="NumericMessageEvaluator" topic="/ar_block_finder/pose" field="pose/position/z" type="geometry_msgs/PoseStamped" />
+      </Postcondition>
+      <Postcondition name="Moveit status">
+        <Condition xsi:type="Binary" value="true" />
+        <Evaluator xsi:type="ExecutionReturnedEvaluator" field="success" />
+      </Postcondition>
+    </Postconditions>
+  </TestCase>
+  <TestCase name="Places" wait_for_preconditions="true" depends_on_previous="true">
+    <Preconditions>
+      <Precondition name="Block picked position">
+        <Condition xsi:type="GreaterThan" value="0.1" />
+        <Evaluator xsi:type="NumericMessageEvaluator" topic="/ar_block_finder/pose" field="pose/position/z" type="geometry_msgs/PoseStamped" />
+      </Precondition>
+    </Preconditions>
+    <Run>
+      <Step xsi:type="ServiceCall" service="/pick_and_placer/do_place" type="rsj_2017_pick_and_placer/DoPlace" />
+    </Run>
+    <Postconditions>
+      <Postcondition name="Block placed x position">
+        <Condition xsi:type="BothLimits" lower_limit_value="0.07" upper_limit_value="0.13" />
+        <Evaluator xsi:type="NumericMessageEvaluator" topic="/ar_block_finder/pose" field="pose/position/x" type="geometry_msgs/PoseStamped" />
+      </Postcondition>
+      <Postcondition name="Block placed y position">
+        <Condition xsi:type="BothLimits" lower_limit_value="-0.23" upper_limit_value="-0.17" />
+        <Evaluator xsi:type="NumericMessageEvaluator" topic="/ar_block_finder/pose" field="pose/position/y" type="geometry_msgs/PoseStamped" />
+      </Postcondition>
+    </Postconditions>
+    <TearDown>
+      <Step xsi:type="ServiceCall" service="/pick_and_placer/initialize" type="rsj_2017_pick_and_placer/Initialize">
+        <Message />
+      </Step>
+    </TearDown>
+  </TestCase>
+</TestSuite>

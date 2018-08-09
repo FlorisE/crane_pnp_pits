@@ -1,0 +1,154 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="https://www.aist.go.jp/rospit"
+  xmlns:rospit="https://www.aist.go.jp/rospit"
+  elementFormDefault="qualified">
+  <xs:element name="TestSuite" type="rospit:TestSuiteType" />
+  <xs:complexType name="TestSuiteType">
+    <xs:sequence>
+      <xs:element name="TestCase" type="rospit:TestCaseType" minOccurs="1" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="TestCaseType">
+    <xs:sequence>
+      <xs:element name="Preconditions" type="rospit:PreconditionsType" minOccurs="0" />
+      <xs:element name="SetUp" type="rospit:SetUpType" minOccurs="0" />
+      <xs:element name="Run" type="rospit:RunType" />
+      <xs:element name="TearDown" type="rospit:TearDownType" minOccurs="0" />
+      <xs:element name="Postconditions" type="rospit:PostconditionsType" minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="ConditionEvaluatorPairType">
+    <xs:sequence>
+      <xs:element name="Condition" type="rospit:ConditionType" />
+      <xs:element name="Evaluator" type="rospit:EvaluatorType" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="PreconditionsType">
+    <xs:sequence>
+      <xs:element name="Precondition" type="rospit:ConditionEvaluatorPairType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ConditionType" mixed="true">
+  </xs:complexType>
+  <xs:complexType name="EvaluatorType">
+  </xs:complexType>
+  <xs:complexType name="Binary">
+    <xs:complexContent>
+      <xs:extension base="rospit:ConditionType">
+        <xs:attribute name="value" type="xs:boolean" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Numeric">
+    <xs:complexContent>
+      <xs:extension base="rospit:ConditionType">
+        <xs:attribute name="type" use="required">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="eq" />
+              <xs:enumeration value="ne" />
+              <xs:enumeration value="gt" />
+              <xs:enumeration value="ge" />
+              <xs:enumeration value="lt" />
+              <xs:enumeration value="le" />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="value" type="xs:float" use="required" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="AMessageHasBeenReceivedOnTopic">
+    <xs:complexContent>
+      <xs:extension base="rospit:EvaluatorType">
+        <xs:attribute name="topic" type="xs:string" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="StaticBooleanEvaluator">
+    <xs:complexContent>
+      <xs:extension base="rospit:EvaluatorType">
+        <xs:attribute name="value" type="xs:boolean" use="required" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="MessageValue">
+    <xs:complexContent>
+      <xs:extension base="rospit:ValueType">
+        <xs:attribute name="topic" type="xs:string" use="required" />
+        <xs:attribute name="type" type="xs:string" use="required" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ValueOfMessage">
+    <xs:complexContent>
+      <xs:extension base="rospit:EvaluatorType">
+        <xs:attribute name="topic" type="xs:string" use="required" />
+        <xs:attribute name="type" type="xs:string" use="required" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="SetUpType">
+    <xs:sequence>
+      <xs:element name="Step" type="rospit:ExecutableItemType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RunType">
+    <xs:sequence>
+      <xs:element name="Step" type="rospit:ExecutableItemType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PostconditionsType">
+    <xs:sequence>
+      <xs:element name="Postcondition" type="rospit:ConditionEvaluatorPairType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TearDownType">
+    <xs:sequence>
+      <xs:element name="Step" type="rospit:ExecutableItemType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ExecutableItemType">
+  </xs:complexType>
+  <xs:complexType name="ServiceCall">
+    <xs:complexContent>
+      <xs:extension base="rospit:ExecutableItemType">
+        <xs:sequence>
+          <xs:element name="Message" type="rospit:MessageType" />
+        </xs:sequence>
+        <xs:attribute name="service" type="xs:string" />
+        <xs:attribute name="type" type="xs:string" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Sleep">
+    <xs:complexContent>
+      <xs:extension base="rospit:ExecutableItemType">
+        <xs:attribute name="duration" type="xs:string" use="required" />
+        <xs:attribute name="unit" default="s" type="xs:string" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="MessageType">
+    <xs:sequence>
+      <xs:element name="Parameter" type="rospit:ParameterType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="type" type="xs:string" use="required" />
+  </xs:complexType>
+  <xs:complexType name="ParameterType">
+    <xs:sequence>
+      <xs:element name="Value" type="rospit:ValueType" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" />
+  </xs:complexType>
+  <xs:complexType name="ValueType">
+  </xs:complexType>
+  <xs:complexType name="ExecutionReturned">
+    <xs:complexContent>
+      <xs:extension base="rospit:EvaluatorType" />
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>
